@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador de QRs</title>
+  <style>
+    body {
+      font-family: system-ui;
+      max-width: 500px;
+      margin: 50px auto;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    img {
+      margin-top: 20px;
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Generador de QR dinámico</h1>
+  <input id="url" type="text" placeholder="Ingresa una URL..." />
+  <button id="generar">Generar QR</button>
+
+  <div id="resultado"></div>
+
+  <script>
+    document.getElementById('generar').addEventListener('click', async () => {
+      const url = document.getElementById('url').value.trim();
+      if (!url) return alert('Por favor, ingresa una URL');
+
+      const res = await fetch('/api/generar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+
+      const data = await res.json();
+      if (data.error) return alert(data.error);
+
+      document.getElementById('resultado').innerHTML = `
+        <p><strong>ID:</strong> ${data.id}</p>
+        <p><a href="/r/${data.id}" target="_blank">Ver redirección</a></p>
+        <img src="${data.qrDataUrl}" alt="QR generado">
+      `;
+    });
+  </script>
+</body>
+</html>
