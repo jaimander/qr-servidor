@@ -31,7 +31,7 @@ app.post('/api/generar', async (req, res) => {
   
   //const baseURL = 'https://gestor-qr-mblj.onrender.com';
   //const qrlink = `${baseURL}/r/${id}`;
-  const qrlink = new URL(`/r/${id}`, 'https://gestor-qr-mblj.onrender.com').toString();
+  const qrlink = new URL(`/r/${id}`, 'qr.dentrodelacaja.com').toString();
   //const qrlink = `http://192.168.1.7:${port}/r/${id}`;
   const qrDataUrl = await QRCode.toDataURL(qrlink, {
   width: 800,               // 🔹 más grande (por defecto ~200)
