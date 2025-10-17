@@ -29,10 +29,8 @@ app.post('/api/generar', async (req, res) => {
   urls[id] = url;
   fs.writeFileSync('urls.json', JSON.stringify(urls, null, 2));
   
-  //const baseURL = 'https://gestor-qr-mblj.onrender.com';
-  //const qrlink = `${baseURL}/r/${id}`;
-  const qrlink = new URL(`/r/${id}`, 'qr.dentrodelacaja.com').toString();
-  //const qrlink = `http://192.168.1.7:${port}/r/${id}`;
+  const baseURL = 'https://qr.dentrodelacaja.com'; // ✅ incluye https
+  const qrlink = new URL(`/r/${id}`, baseURL).toString();
   const qrDataUrl = await QRCode.toDataURL(qrlink, {
   width: 800,               // 🔹 más grande (por defecto ~200)
   margin: 2,                // 🔹 espacio blanco alrededor
