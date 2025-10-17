@@ -26,34 +26,53 @@
       margin-top: 20px;
       width: 200px;
     }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>Generador de QR dinámico</h1>
   <input id="url" type="text" placeholder="Ingresa una URL..." />
+  <input id="customId" type="text" placeholder="ID personalizado (opcional)" />
   <button id="generar">Generar QR</button>
 
   <div id="resultado"></div>
+  <div id="error" class="error"></div>
 
   <script>
     document.getElementById('generar').addEventListener('click', async () => {
       const url = document.getElementById('url').value.trim();
+      const customId = document.getElementById('customId').value.trim();
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = '';
+
       if (!url) return alert('Por favor, ingresa una URL');
 
-      const res = await fetch('/api/generar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
+      try {
+        const res = await fetch('/api/generar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, customId })
+        });
 
-      const data = await res.json();
-      if (data.error) return alert(data.error);
+        const data = await res.json();
 
-      document.getElementById('resultado').innerHTML = `
-        <p><strong>ID:</strong> ${data.id}</p>
-        <p><a href="/r/${data.id}" target="_blank">Ver redirección</a></p>
-        <img src="${data.qrDataUrl}" alt="QR generado">
-      `;
+        if (res.status !== 200) {
+          errorDiv.textContent = data.error || 'Ocurrió un error';
+          return;
+        }
+
+        document.getElementById('resultado').innerHTML = `
+          <p><strong>ID:</strong> ${data.id}</p>
+          <p><a href="/r/${data.id}" target="_blank">Ver redirección</a></p>
+          <img src="${data.qrDataUrl}" alt="QR generado">
+        `;
+      } catch (err) {
+        console.error(err);
+        errorDiv.textContent = 'Error al generar el QR';
+      }
     });
   </script>
 </body>

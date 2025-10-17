@@ -3,7 +3,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
@@ -15,30 +15,51 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
 
+// 🔹 Cargar URLs previas desde urls.json
 let urls = {};
-
-if (fs.existsSync('urls.json')) {
-  urls = JSON.parse(fs.readFileSync('urls.json'));
+const jsonPath = 'urls.json';
+if (fs.existsSync(jsonPath)) {
+  urls = JSON.parse(fs.readFileSync(jsonPath));
 }
 
+// 🔹 Endpoint para generar QR
 app.post('/api/generar', async (req, res) => {
-  const { url } = req.body;
+  let { url, customId } = req.body;
+
   if (!url) return res.status(400).json({ error: 'Falta la URL' });
 
-  const id = Date.now().toString(36);
+  // Si no se da un ID personalizado, generar uno automático
+  let id = customId ? customId.trim() : Date.now().toString(36);
+
+  // Verificar que el ID no exista ya
+  if (urls[id]) {
+    return res.status(400).json({ error: 'El ID ya existe, elige otro' });
+  }
+
   urls[id] = url;
-  fs.writeFileSync('urls.json', JSON.stringify(urls, null, 2));
-  
-  const baseURL = 'https://qr.dentrodelacaja.com'; // ✅ incluye https
+
+  // Guardar en urls.json
+  fs.writeFileSync(jsonPath, JSON.stringify(urls, null, 2));
+
+  // 🔹 Generar el QR apuntando al servidor
+  const baseURL = 'https://qr.dentrodelacaja.com'; // tu dominio
   const qrlink = new URL(`/r/${id}`, baseURL).toString();
-  const qrDataUrl = await QRCode.toDataURL(qrlink, {
-  width: 800,               // 🔹 más grande (por defecto ~200)
-  margin: 2,                // 🔹 espacio blanco alrededor
-  errorCorrectionLevel: 'H' // 🔹 mayor redundancia (mejor escaneo)
-  });
-  res.json({ id, qrDataUrl });
+
+  try {
+    const qrDataUrl = await QRCode.toDataURL(qrlink, {
+      width: 800,               // más grande
+      margin: 2,                // espacio alrededor
+      errorCorrectionLevel: 'H' // alta redundancia
+    });
+
+    res.json({ id, qrDataUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al generar el QR' });
+  }
 });
 
+// 🔹 Endpoint de redirección
 app.get('/r/:id', (req, res) => {
   const { id } = req.params;
   const destino = urls[id];
@@ -46,6 +67,7 @@ app.get('/r/:id', (req, res) => {
   else res.status(404).send('QR no encontrado');
 });
 
+// 🔹 Arrancar servidor
 app.listen(port, () => {
-  //console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
 });
