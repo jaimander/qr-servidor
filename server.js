@@ -29,7 +29,7 @@ app.post('/api/generar', async (req, res) => {
   urls[id] = url;
   fs.writeFileSync('urls.json', JSON.stringify(urls, null, 2));
   
-  const baseURL = 'https://www.a.com/qr';
+  const baseURL = 'https://gestor-qr-mblj.onrender.com/';
   const qrlink = `${baseURL}/r/${id}`;
   //const qrlink = `http://192.168.1.7:${port}/r/${id}`;
   const qrDataUrl = await QRCode.toDataURL(qrlink, {
