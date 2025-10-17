@@ -29,8 +29,14 @@ app.post('/api/generar', async (req, res) => {
   urls[id] = url;
   fs.writeFileSync('urls.json', JSON.stringify(urls, null, 2));
   
-  const qrlink = `http://192.168.1.25:${port}/r/${id}`;
-  const qrDataUrl = await QRCode.toDataURL(qrlink);
+  const baseURL = 'https://www.a.com/qr';
+  const qrlink = `${baseURL}/r/${id}`;
+  //const qrlink = `http://192.168.1.7:${port}/r/${id}`;
+  const qrDataUrl = await QRCode.toDataURL(qrlink, {
+  width: 800,               // 🔹 más grande (por defecto ~200)
+  margin: 2,                // 🔹 espacio blanco alrededor
+  errorCorrectionLevel: 'H' // 🔹 mayor redundancia (mejor escaneo)
+  });
   res.json({ id, qrDataUrl });
 });
 
@@ -42,5 +48,5 @@ app.get('/r/:id', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
+  //console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
 });
